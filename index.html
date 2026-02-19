@@ -157,8 +157,26 @@ body{
   font-family:'Inter',sans-serif;
   font-size:clamp(60px,8vw,100px);font-weight:700;
   letter-spacing:-0.03em;line-height:0.85;
-  color:rgba(228,235,240,0.05);margin-bottom:10px;
+  color:rgba(125,212,240,0.18);margin-bottom:10px;
 }
+
+/* ---- CELL BACKGROUND IMAGE ---- */
+.cell-bg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;object-position:center;
+  filter:grayscale(1) brightness(0.45) contrast(1.08);
+  z-index:0;pointer-events:none;
+}
+.cell:has(.cell-bg)::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(6,8,12,0.18) 0%,rgba(6,8,12,0.78) 48%,rgba(6,8,12,0.97) 100%);
+  z-index:1;pointer-events:none;
+}
+.cell:has(.cell-bg) .c-tag,
+.cell:has(.cell-bg) .c-num,
+.cell:has(.cell-bg) .c-desc,
+.cell:has(.cell-bg) .c-src{position:relative;z-index:2}
 .fm-title{font-family:'Inter',sans-serif;font-size:clamp(13px,1.5vw,17px);font-weight:700;line-height:1.2}
 .fm-sub{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.65}
 
@@ -266,7 +284,7 @@ body{
 <div class="deck">
 
 <!-- 01 COVER -->
-<div class="slide active" data-i="0">
+<div class="slide active" data-i="0" style="background-image:linear-gradient(rgba(6,8,12,0.75),rgba(6,8,12,0.5)),url('everest-summit-1_4x3.jpg');background-size:cover;background-position:center;">
   <div class="cover-inner">
     <div>
       <div class="kicker">A Documentary by Geologic Dome</div>
@@ -289,21 +307,24 @@ body{
   <div class="headline">Everest is dying.<br>The world is not listening.</div>
   <div class="g3">
     <div class="cell">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-FMrZLPdDyx4?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Waste</div>
       <div class="c-num">95t</div>
       <div class="c-desc">Waste collected from Everest in 2024 alone. 40 to 50 tons still at South Col and high camps. Microplastics at 8,440m — highest ever recorded on Earth.</div>
       <div class="c-src">SPCC / NPR / ScienceDirect 2024</div>
     </div>
     <div class="cell">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-c1ORbYn1sAk?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Ice</div>
       <div class="c-num">2,000</div>
       <div class="c-desc">Years of ice lost on South Col Glacier in 25 years. Khumbu retreating 30m/year. Thinning rate has doubled since 2009. Gone by mid-century at current pace.</div>
       <div class="c-src">Nature / National Geographic 2022 to 2025</div>
     </div>
     <div class="cell danger">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-HwXspyGIl6A?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">People</div>
       <div class="c-num r">4,035</div>
-      <div class="c-desc">Sherpa fatalities per 100,000 workers. Miners: 25. Fishermen: 124. Sherpas cross the Khumbu Icefall 15 to 20 times per season. Western climbers: 4 to 5.</div>
+      <div class="c-desc">Sherpa fatalities per 100,000 workers. Western climbers: 4 to 5. Sherpas cross the Khumbu Icefall 15 to 20 times per season.</div>
       <div class="c-src">Outside Online / NPR / Alan Arnette 2025</div>
     </div>
   </div>
@@ -315,18 +336,21 @@ body{
   <div class="headline">Sherpas take 4x the risk.<br>Earn one-tenth the pay.</div>
   <div class="g3">
     <div class="cell">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-zWGhVgY-GmY?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Pay Gap</div>
       <div class="c-num r">10x</div>
       <div class="c-desc">Western guides earn $50,000+ per season. Sherpas earn $4,000 to $5,000. Same mountain. More crossings. The most dangerous terrain on Earth.</div>
       <div class="c-src">Alan Arnette / Borgen Project 2024 to 2025</div>
     </div>
     <div class="cell">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-6F-uGWod7Xk?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Population</div>
       <div class="c-num w">250K</div>
-      <div class="c-desc">Sherpas in Nepal per 2023 census. 150,000 globally. Their story has driven a global industry. They have never told it themselves. Until now.</div>
+      <div class="c-desc">Sherpas in Nepal per 2023 census. 400,000 worldwide. Their labor sustains a $500M+ annual expedition industry.</div>
       <div class="c-src">Nepal Census 2023 / Joshua Project</div>
     </div>
     <div class="cell hi">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-_ZJCSsOTDDQ?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Media Precedent</div>
       <div class="c-num sm w">Mountain Queen</div>
       <div class="c-desc">Lhakpa Sherpa documentary. Netflix. July 2024. Sherpa-led. Proof the audience exists. PEMBA tells it at 8,000m through a machine that speaks every language.</div>
@@ -342,28 +366,27 @@ body{
   <div class="g2" style="margin-top:28px;">
     <div class="gcol">
       <div class="cell hi" style="flex:1">
-        <div class="c-tag">The Robot — Unitree G1 EDU</div>
-        <div class="c-num sm w">-47.4°C</div>
-        <div class="c-desc">Tested February 2026, Xinjiang. 130,000 steps across Arctic ice. Beidou satellite nav. NVIDIA Jetson Orin (100 TOPS AI). 360° LiDAR. 4-mic array. 35kg. $43,500.</div>
-        <div class="c-src">Interesting Engineering / CNEVPost Feb 2026</div>
+        <div class="c-tag">The Vision</div>
+        <div class="c-num sm w">Their words.<br>Their story.</div>
+        <div class="c-desc">PEMBA aims to amplify Sherpa voices, advocate for greater pay equality, and bring global attention to the school founded by Tashi Lakpa and Oswaldo Freire — the first school in their village.</div>
       </div>
       <div class="cell" style="flex:1">
-        <div class="c-tag">Unitree Robotics</div>
-        <div class="c-num">$1.7B</div>
-        <div class="c-desc">Valuation June 2025. $137M revenue 2024. Projecting 10,000 to 20,000 G1 units in 2026. Backed by Tencent, Alibaba, Ant Group, Geely Capital.</div>
-        <div class="c-src">The Robot Report / CNTechPost 2025</div>
+        <div class="c-tag">The Method — Unitree G1 EDU</div>
+        <div class="c-num sm w">-47.4°C</div>
+        <div class="c-desc">The robot is the tool that makes the vision possible. It conducts autonomous interviews in Nepali at altitude, reaches terrain no crew can access, and is itself the stunt that draws global attention to the cause.</div>
+        <div class="c-src">Interesting Engineering / CNEVPost Feb 2026</div>
       </div>
     </div>
     <div class="gcol">
       <div class="cell" style="flex:1">
         <div class="c-tag">The Story</div>
-        <div class="c-num sm w">Any language.<br>Any altitude.</div>
-        <div class="c-desc">Speaks directly to Sherpa communities. No Western intermediary. Gets closer than any crew camera. Sherpas talk to 325 million people in their own words.</div>
+        <div class="c-num sm w">Equity.<br>Visibility.</div>
+        <div class="c-desc">PEMBA tells the story of a community that built the world's most famous industry and has never been fully paid for it. The film hopes to reshape how the world sees, values, and compensates the people of the Khumbu.</div>
       </div>
       <div class="cell" style="flex:1">
         <div class="c-tag">The Impact</div>
         <div class="c-num sm w">88%</div>
-        <div class="c-desc">Of Blue Planet II viewers changed real behavior. 100% increase in searches for ocean plastic dangers. 55% increase in recycling searches. A robot on the summit is more viral than any narrator.</div>
+        <div class="c-desc">Of Blue Planet II viewers changed real behavior after watching. What could that kind of global attention do for Sherpa pay equity, the school, and the communities behind every summit?</div>
         <div class="c-src">Ipsos UK / Rapid Transition Alliance</div>
       </div>
     </div>
@@ -376,7 +399,7 @@ body{
   <div class="headline">Confirmed.</div>
   <div class="g22">
     <div class="tr-cell">
-      <div class="confirmed">Confirmed / Distribution</div>
+      <div class="confirmed">In Discussions / Distribution</div>
       <div class="tr-title">Netflix</div>
       <div class="tr-sub">325M subscribers. $45.2B revenue 2025. $18B content spend growing to $20B in 2026. Documentary TV: 5.12 billion viewing hours on Netflix in 2024.</div>
     </div>
@@ -404,18 +427,21 @@ body{
   <div class="headline">325M subscribers.<br>A story they have never seen.</div>
   <div class="g3">
     <div class="cell">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-AtPWnYNDJnM?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Distribution Reach</div>
       <div class="c-num">325M</div>
-      <div class="c-desc">Netflix paid subscribers end of 2025. $45.2B annual revenue. Combined top 4 platforms: 622M+ subscribers. Documentary TV: 5.12B hours watched on Netflix in 2024.</div>
+      <div class="c-desc">Netflix paid subscribers end of 2025. Combined top 4 platforms: 622M+ subscribers. Documentary TV: 5.12B hours watched on Netflix in 2024.</div>
       <div class="c-src">Netflix Q4 2025 Earnings / Variety Jan 2026</div>
     </div>
     <div class="cell">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-kUmi1gdIrRI?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Comparable — Nature, 2024</div>
       <div class="c-num sm w">Our Living World</div>
-      <div class="c-desc">Netflix. April 2024. Cate Blanchett. Number one globally the week of release. 21.4M views opening week. Beat every scripted title on the platform.</div>
+      <div class="c-desc">Adventure seekers, entrepreneurs, travelers, and outdoor gear enthusiasts — the same audience that made Free Solo a phenomenon. This is the demographic most valuable to sponsors in adventure, travel, and outdoor gear categories.</div>
       <div class="c-src">Netflix Global Top 10 / April 2024</div>
     </div>
     <div class="cell hi">
+      <img class="cell-bg" src="https://images.unsplash.com/photo-sq15NflsDTc?w=800&q=80&fit=crop" alt="">
       <div class="c-tag">Comparable — Extreme Altitude, 2021</div>
       <div class="c-num sm w">14 Peaks: Nothing is Impossible</div>
       <div class="c-desc">Nirmal Purja. All 14 eight-thousanders in 6 months. Sunday Times Top 10 book. Rolex, Garmin, Bremont partnerships. $20K speaking events. PEMBA has the same altitude, a better story, and a robot.</div>
@@ -469,7 +495,7 @@ body{
     <div class="fm-cell">
       <div class="fm-n">02</div>
       <div class="fm-title">First autonomous interviews with Sherpa communities at altitude</div>
-      <div class="fm-sub">250,000 Sherpas in Nepal. Their story has never been told in their language, at altitude, without a Western intermediary. The robot removes the barrier.</div>
+      <div class="fm-sub">We are trying something new — autonomous interviews conducted in their language, at altitude. Our aim is to capture never-before-told stories that emerge when the camera is not a Western crew, but a machine they can speak to directly.</div>
     </div>
     <div class="fm-cell">
       <div class="fm-n">03</div>
