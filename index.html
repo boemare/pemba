@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEMBA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #07090c;
+  --fg: #edf0f4;
+  --dim: rgba(237,240,244,0.42);
+  --faint: rgba(237,240,244,0.12);
+  --ice: #6ec6e8;
+  --gold: #d4a853;
+  --danger: #e05c5c;
+  --line: rgba(237,240,244,0.07);
+  --pad: 64px;
+}
+
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+/* ---- PROGRESS ---- */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px;
+  background: var(--ice); transition: width 0.45s ease; z-index: 200;
+}
+
+/* ---- SLIDE ENGINE ---- */
+.deck { width: 100vw; height: 100vh; position: relative; }
+.slide {
+  position: absolute; inset: 0;
+  padding: var(--pad);
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+/* ---- TYPE ---- */
+.kicker {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--ice); margin-bottom: 20px;
+}
+.headline {
+  font-size: clamp(28px, 3.6vw, 50px); font-weight: 900;
+  line-height: 1.04; letter-spacing: -0.025em;
+}
+.sub { font-size: 14px; color: var(--dim); line-height: 1.6; margin-top: 10px; max-width: 560px; }
+
+/* ---- GRID SYSTEMS ---- */
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
+.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
+.g22 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
+.gcol { display: flex; flex-direction: column; gap: 1px; }
+
+/* ---- CELL ---- */
+.cell {
+  border: 1px solid var(--line);
+  padding: 32px 28px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative; overflow: hidden;
+}
+.cell.hi { background: rgba(110,198,232,0.04); border-color: rgba(110,198,232,0.18); }
+.cell.danger { background: rgba(224,92,92,0.04); border-color: rgba(224,92,92,0.18); }
+
+.c-tag {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--dim); margin-bottom: 12px;
+}
+.c-num {
+  font-size: clamp(44px, 6vw, 82px); font-weight: 900;
+  line-height: 0.9; letter-spacing: -0.03em; color: var(--ice);
+}
+.c-num.w { color: var(--fg); }
+.c-num.g { color: var(--gold); }
+.c-num.r { color: var(--danger); }
+.c-num.sm { font-size: clamp(24px, 3vw, 42px); line-height: 1.05; }
+.c-desc {
+  font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.6;
+}
+.c-src {
+  font-size: 9px; color: rgba(237,240,244,0.2); margin-top: 8px; letter-spacing: 0.04em;
+}
+
+/* ---- COVER ---- */
+.cover-body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.wordmark {
+  font-size: clamp(100px, 20vw, 220px); font-weight: 900;
+  letter-spacing: -0.045em; line-height: 0.85; color: var(--fg);
+}
+.cover-tag { font-size: clamp(14px, 1.6vw, 20px); font-weight: 300; color: var(--dim); margin-top: 20px; line-height: 1.45; max-width: 520px; }
+.cover-ft { display: flex; justify-content: space-between; align-items: flex-end; }
+.sponsors { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
+.date-pill {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ice); border: 1px solid rgba(110,198,232,0.35); padding: 8px 16px;
+}
+
+/* ---- TRACTION ---- */
+.tr-cell {
+  border: 1px solid var(--line); padding: 36px 32px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.tr-cell.hi { background: rgba(110,198,232,0.04); border-color: rgba(110,198,232,0.2); }
+.confirmed { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ice); margin-bottom: 10px; }
+.tr-title { font-size: clamp(18px, 2.2vw, 26px); font-weight: 800; line-height: 1.15; }
+.tr-sub { font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.6; }
+
+/* ---- FIRST MOVER ---- */
+.fm-cell {
+  border: 1px solid var(--line); padding: 36px 32px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.fm-cell.hi { background: rgba(110,198,232,0.04); border-color: rgba(110,198,232,0.2); }
+.fm-n {
+  font-size: clamp(72px, 10vw, 110px); font-weight: 900;
+  letter-spacing: -0.04em; line-height: 0.85;
+  color: rgba(237,240,244,0.06); margin-bottom: 12px;
+}
+.fm-title { font-size: clamp(14px, 1.6vw, 18px); font-weight: 700; line-height: 1.2; }
+.fm-sub { font-size: 11px; color: var(--dim); margin-top: 8px; line-height: 1.6; }
+
+/* ---- TEAM ---- */
+.team-cell { border: 1px solid var(--line); padding: 32px 28px; }
+.t-role { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ice); margin-bottom: 10px; }
+.t-name { font-size: clamp(14px, 1.6vw, 18px); font-weight: 800; margin-bottom: 10px; line-height: 1.2; }
+.t-bio { font-size: 12px; color: var(--dim); line-height: 1.6; }
+
+/* ---- ASK ---- */
+.ask-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.ask-num { font-size: clamp(80px, 16vw, 180px); font-weight: 900; letter-spacing: -0.04em; line-height: 0.85; color: var(--gold); }
+.ask-desc { font-size: clamp(14px, 1.8vw, 20px); font-weight: 300; color: var(--dim); margin-top: 24px; max-width: 520px; line-height: 1.55; }
+.ask-row { display: flex; gap: 48px; margin-top: 48px; border-top: 1px solid var(--line); padding-top: 32px; flex-wrap: wrap; }
+.ask-item { display: flex; flex-direction: column; gap: 5px; }
+.ask-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.ask-val { font-size: 13px; font-weight: 600; color: var(--fg); }
+
+/* ---- NAV ---- */
+.nav-dots { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 100; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); cursor: pointer; transition: background 0.3s, transform 0.3s; }
+.dot.on { background: var(--ice); transform: scale(1.5); }
+.slide-counter { position: fixed; top: 22px; right: var(--pad); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--faint); z-index: 100; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div class="slide-counter" id="counter">01 / 10</div>
+<div class="nav-dots" id="dots"></div>
+
+<div class="deck">
+
+<!-- ======== 01: COVER ======== -->
+<div class="slide active" data-i="0">
+  <div class="cover-body">
+    <div>
+      <div class="kicker">A Documentary by Geologic Dome</div>
+      <div class="wordmark">PEMBA.</div>
+      <div class="cover-tag">The first humanoid robot on Everest. A once-in-a-generation story about a dying mountain, an invisible people, and the machine that tells it right.</div>
+    </div>
+    <div class="cover-ft">
+      <div>
+        <div class="sponsors">Unitree &nbsp;+&nbsp; Netflix</div>
+        <div style="margin-top:6px;font-size:10px;color:rgba(237,240,244,0.2);letter-spacing:0.08em;">geologicdome.com</div>
+      </div>
+      <div class="date-pill">April 12 to June 1, 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 02: THE PROBLEM ======== -->
+<div class="slide" data-i="1">
+  <div class="kicker">The Problem</div>
+  <div class="headline">Everest is dying.<br>The world is not listening.</div>
+  <div class="g3">
+    <div class="cell">
+      <div class="c-tag">Waste</div>
+      <div class="c-num">95t</div>
+      <div class="c-desc">Waste collected from Everest in the 2024 season alone. 40 to 50 tons still sitting at South Col and high camps. Microplastics detected at 8,440m, the highest concentration ever recorded on Earth.</div>
+      <div class="c-src">SPCC / NPR / ScienceDirect 2024</div>
+    </div>
+    <div class="cell">
+      <div class="c-tag">Ice</div>
+      <div class="c-num">2,000</div>
+      <div class="c-desc">Years of ice lost on South Col Glacier in 25 years. Khumbu Glacier retreating 30m per year. Thinning rate has doubled since 2009. At current pace, gone by mid-century.</div>
+      <div class="c-src">Nature / National Geographic 2022 to 2025</div>
+    </div>
+    <div class="cell danger">
+      <div class="c-tag">People</div>
+      <div class="c-num r">4,035</div>
+      <div class="c-desc">Sherpa fatalities per 100,000 workers. Miners: 25. Commercial fishermen: 124. Sherpas cross the Khumbu Icefall 15 to 20 times per season. Western climbers cross it 4 to 5 times.</div>
+      <div class="c-src">Outside Online / NPR / Alan Arnette 2025</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 03: THE SHERPA GAP ======== -->
+<div class="slide" data-i="2">
+  <div class="kicker">The Human Cost</div>
+  <div class="headline">Sherpas take 4x the risk.<br>Earn one-tenth the pay.</div>
+  <div class="g3">
+    <div class="cell">
+      <div class="c-tag">Pay Gap</div>
+      <div class="c-num r">10x</div>
+      <div class="c-desc">Western guides earn $50,000 or more per season. Sherpas earn $4,000 to $5,000. For the same mountain. For more crossings through the most dangerous terrain on Earth.</div>
+      <div class="c-src">Alan Arnette / Borgen Project 2024 to 2025</div>
+    </div>
+    <div class="cell">
+      <div class="c-tag">Population</div>
+      <div class="c-num w">250K</div>
+      <div class="c-desc">Sherpas in Nepal per 2023 census. 150,000 globally. Their story has driven a global industry worth tens of millions per year. They have never told it themselves. Until now.</div>
+      <div class="c-src">Nepal Census 2023 / Joshua Project</div>
+    </div>
+    <div class="cell hi">
+      <div class="c-tag">Media Precedent</div>
+      <div class="c-num w sm">Mountain Queen</div>
+      <div class="c-desc">Lhakpa Sherpa documentary. Netflix. July 2024. Sherpa-led. Proof the audience exists and is hungry for this story. PEMBA tells it at 8,000 meters, through a machine that speaks every language.</div>
+      <div class="c-src">Netflix / Deadline July 2024</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 04: SOLUTION ======== -->
+<div class="slide" data-i="3">
+  <div class="kicker">Our Solution</div>
+  <div class="headline">We put a humanoid on the summit.<br>Once in a lifetime.</div>
+  <div class="g2" style="margin-top:32px;">
+    <div class="gcol">
+      <div class="cell hi" style="flex:1;">
+        <div class="c-tag">The Robot: Unitree G1 EDU</div>
+        <div class="c-num sm w">-47.4°C</div>
+        <div class="c-desc">Tested February 2026 in Xinjiang, China. 130,000 steps across Arctic ice and snow. Beidou satellite nav with centimeter precision. NVIDIA Jetson Orin (100 TOPS AI). 360° LiDAR. 4-mic array. 35kg. $43,500.</div>
+        <div class="c-src">Interesting Engineering / CNEVPost Feb 2026</div>
+      </div>
+      <div class="cell" style="flex:1;">
+        <div class="c-tag">Unitree Robotics</div>
+        <div class="c-num">$1.7B</div>
+        <div class="c-desc">Valuation June 2025. $137M revenue in 2024. Projecting 10,000 to 20,000 G1 units shipped in 2026. Backed by Tencent, Alibaba, Ant Group, Geely Capital.</div>
+        <div class="c-src">The Robot Report / CNTechPost 2025</div>
+      </div>
+    </div>
+    <div class="gcol">
+      <div class="cell" style="flex:1;">
+        <div class="c-tag">The Story</div>
+        <div class="c-num sm w">Any language.<br>Any altitude.</div>
+        <div class="c-desc">The robot speaks directly to Sherpa communities without a Western intermediary. Gets closer than any crew camera. Sherpas speak to 325 million people in their own words. No translation loss.</div>
+      </div>
+      <div class="cell" style="flex:1;">
+        <div class="c-tag">The Impact</div>
+        <div class="c-num sm w">88%</div>
+        <div class="c-desc">Of Blue Planet II viewers changed real-world behavior. 100% increase in searches for ocean plastic dangers post-broadcast. 55% increase in recycling searches. A robot on the summit is more viral than any narrator.</div>
+        <div class="c-src">Ipsos UK / Rapid Transition Alliance</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 05: TRACTION ======== -->
+<div class="slide" data-i="4">
+  <div class="kicker">Traction</div>
+  <div class="headline">Confirmed.</div>
+  <div class="g22">
+    <div class="tr-cell">
+      <div class="confirmed">Confirmed / Distribution</div>
+      <div class="tr-title">Netflix</div>
+      <div class="tr-sub">325M subscribers. $45.2B revenue in 2025. $18B content spend. Growing to $20B in 2026. Documentary TV: 5.12 billion viewing hours on Netflix in 2024 alone.</div>
+    </div>
+    <div class="tr-cell">
+      <div class="confirmed">Confirmed / Partnership</div>
+      <div class="tr-title">14 Peaks Expedition</div>
+      <div class="tr-sub">Tashi Lakpa Sherpa leads logistics and community relations. Nima Sherpa is on the expedition team: youngest mountaineer to summit all 14 peaks above 8,000m.</div>
+    </div>
+    <div class="tr-cell">
+      <div class="confirmed">Confirmed / Hardware</div>
+      <div class="tr-title">Unitree G1 EDU Acquired and Tested</div>
+      <div class="tr-sub">Cold-weather performance validated. Autonomous trucks already operate at 5,600m altitude in China. Caterpillar has 690 units deployed globally. This technology works at altitude.</div>
+    </div>
+    <div class="tr-cell hi">
+      <div class="confirmed">Confirmed / Expedition Window</div>
+      <div class="tr-title">April 12 to June 1, 2026</div>
+      <div class="tr-sub">Spring climbing season. Permit secured. Nepal raised Everest permit fee 36% to $15,000 in September 2025, signaling government commitment to regulated, high-value access.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 06: MARKET ======== -->
+<div class="slide" data-i="5">
+  <div class="kicker">Market</div>
+  <div class="headline">325M subscribers.<br>A story they have never seen.</div>
+  <div class="g3">
+    <div class="cell">
+      <div class="c-tag">Distribution Reach</div>
+      <div class="c-num">325M</div>
+      <div class="c-desc">Netflix paid subscribers end of 2025. $45.2B in annual revenue. Combined top 4 streaming platforms: 622M+ subscribers globally. Documentary TV generated 5.12 billion viewing hours on Netflix in 2024.</div>
+      <div class="c-src">Netflix Q4 2025 Earnings / Variety Jan 2026</div>
+    </div>
+    <div class="cell">
+      <div class="c-tag">Comparable: Nature, 2024</div>
+      <div class="c-num sm w">Our Living World</div>
+      <div class="c-desc">Netflix. April 2024. Narrated by Cate Blanchett. Number one title globally on Netflix the week of release. 21.4 million views in the opening week. Beat every scripted title on the platform that week.</div>
+      <div class="c-src">Netflix Global Top 10 / April 2024</div>
+    </div>
+    <div class="cell hi">
+      <div class="c-tag">Comparable: Extreme Altitude, 2021</div>
+      <div class="c-num sm w">14 Peaks: Nothing is Impossible</div>
+      <div class="c-desc">Nirmal Purja climbs all 14 eight-thousanders in 6 months. Book became a Sunday Times Top 10 bestseller. Secured Rolex, Garmin, and Bremont partnerships. Speaking circuit at $20,000 per event. PEMBA has the same altitude, a better story, and a robot.</div>
+      <div class="c-src">Nimsdai.com / Amazon / CelebClive 2025</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 07: AUTOMATION UPSIDE ======== -->
+<div class="slide" data-i="6">
+  <div class="kicker">The Bigger Picture</div>
+  <div class="headline">This is also a proof of concept<br>for a $38 billion industry.</div>
+  <div class="g4">
+    <div class="cell">
+      <div class="c-tag">Labor Pool</div>
+      <div class="c-num">29M+</div>
+      <div class="c-desc">Workers in extreme environments globally. 21.4M in mining (ILO). 8.27M in oil and gas (IEA 2024). Fully-loaded cost: $100K to $150K per worker per year.</div>
+      <div class="c-src">ILO 2021 / IEA World Energy Employment 2024</div>
+    </div>
+    <div class="cell">
+      <div class="c-tag">Already Proven</div>
+      <div class="c-num w" style="font-size:clamp(36px,4.5vw,62px);">5,600m</div>
+      <div class="c-desc">Altitude where autonomous trucks already operate in Xinjiang, China. Yimin Mine runs 100 electric autonomous trucks at -40°C. Caterpillar has 690 units deployed, targeting 2,000+ by 2030. Everest base camp is 5,364m.</div>
+      <div class="c-src">China Daily / Huawei / Int'l Mining 2025</div>
+    </div>
+    <div class="cell">
+      <div class="c-tag">Annual Savings Potential</div>
+      <div class="c-num g">$290B</div>
+      <div class="c-desc">Annual savings from AI in mining alone by 2035, per McKinsey. Autonomous trucks cut labor costs up to 50%. Mining companies report 30% productivity gains from autonomous equipment.</div>
+      <div class="c-src">McKinsey / Caterpillar 2025</div>
+    </div>
+    <div class="cell hi">
+      <div class="c-tag">Robot Market</div>
+      <div class="c-num">$38B</div>
+      <div class="c-desc">Humanoid robot market by 2035 per Goldman Sachs. Morgan Stanley projects $5 trillion by 2050. PEMBA is the first real-world field test at the world's most extreme publicly accessible altitude.</div>
+      <div class="c-src">Goldman Sachs 2024 / Morgan Stanley 2024</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 08: FIRST MOVER ======== -->
+<div class="slide" data-i="7">
+  <div class="kicker">First Mover Advantage</div>
+  <div class="headline">The team that does it first<br>owns the narrative forever.</div>
+  <div class="g22">
+    <div class="fm-cell">
+      <div class="fm-n">01</div>
+      <div class="fm-title">First robot on Everest</div>
+      <div class="fm-sub">Guaranteed global media coverage no budget can buy. Every subsequent expedition-robotics project will be compared to PEMBA. This category does not exist yet.</div>
+    </div>
+    <div class="fm-cell">
+      <div class="fm-n">02</div>
+      <div class="fm-title">First autonomous interviews with Sherpa communities at altitude</div>
+      <div class="fm-sub">250,000 Sherpas in Nepal. Their story has never been told in their language, at altitude, without a Western intermediary. The robot removes the barrier.</div>
+    </div>
+    <div class="fm-cell">
+      <div class="fm-n">03</div>
+      <div class="fm-title">First locomotion and sensor dataset from extreme high-altitude terrain</div>
+      <div class="fm-sub">Biometric, environmental, and mobility data from 8,000m+ is scientifically unprecedented. Every robotics lab, mining company, and defense contractor needs this data.</div>
+    </div>
+    <div class="fm-cell hi">
+      <div class="fm-n">04</div>
+      <div class="fm-title">First conservation documentary where the main camera is a humanoid</div>
+      <div class="fm-sub">New format. New audience. New distribution model. The robot is not a gimmick. It is the protagonist, the camera, and the proof of concept. Simultaneously.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 09: TEAM ======== -->
+<div class="slide" data-i="8">
+  <div class="kicker">The Team</div>
+  <div class="headline">Built for this exact mission.</div>
+  <div class="g22" style="margin-top:32px;">
+    <div class="team-cell">
+      <div class="t-role">Project Leads</div>
+      <div class="t-name">Pablo Berlanga + Titania Freire</div>
+      <div class="t-bio">Ex-WWF, Microsoft, and UN. Lead project strategy, global partnerships, and narrative direction. The organizational architecture that makes PEMBA possible.</div>
+    </div>
+    <div class="team-cell">
+      <div class="t-role">Robotics Leads</div>
+      <div class="t-name">Arnaud Denis-Remillard + Lucas Miranda</div>
+      <div class="t-bio">Reflex, 1517, R. Operating System. Responsible for hardware deployment, cold-weather adaptation, autonomous navigation, and real-time operation above 5,000m.</div>
+    </div>
+    <div class="team-cell">
+      <div class="t-role">Expedition Leads</div>
+      <div class="t-name">Oswaldo Freire + Nima Sherpa</div>
+      <div class="t-bio">Nima Sherpa: youngest mountaineer to summit all 14 peaks above 8,000m. Oswaldo Freire leads expedition operations. Summit strategy, safety, and high-altitude execution.</div>
+    </div>
+    <div class="team-cell">
+      <div class="t-role">Logistics + Community Relations</div>
+      <div class="t-name">Tashi Lakpa Sherpa</div>
+      <div class="t-bio">Head of 14 Peaks Expedition. Leads ground logistics and all Sherpa community relations. The bridge between the machine and the people it is here to amplify.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== 10: THE ASK ======== -->
+<div class="slide" data-i="9">
+  <div class="kicker">The Ask</div>
+  <div class="ask-body">
+    <div class="ask-num">$200K</div>
+    <div class="ask-desc">Opening space for title, ad, and robot clothing sponsorships. Be part of the first chapter of a story that will be told for decades. First mover pricing. First mover placement. First mover legacy.</div>
+    <div class="ask-row">
+      <div class="ask-item">
+        <div class="ask-label">Book a Call</div>
+        <div class="ask-val">p@geologicdome.com</div>
+      </div>
+      <div class="ask-item">
+        <div class="ask-label">Website</div>
+        <div class="ask-val">geologicdome.com</div>
+      </div>
+      <div class="ask-item">
+        <div class="ask-label">Donate</div>
+        <div class="ask-val">geologicdome.com/donate</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end deck -->
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const dots  = document.getElementById('dots');
+const counter = document.getElementById('counter');
+const bar = document.getElementById('progress-bar');
+const n = slides.length;
+let cur = 0;
+
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' on' : '');
+  d.addEventListener('click', () => go(i));
+  dots.appendChild(d);
+});
+
+function go(to) {
+  to = Math.max(0, Math.min(to, n - 1));
+  slides[cur].classList.remove('active');
+  dots.children[cur].classList.remove('on');
+  cur = to;
+  slides[cur].classList.add('active');
+  dots.children[cur].classList.add('on');
+  counter.textContent = String(cur + 1).padStart(2,'0') + ' / ' + String(n).padStart(2,'0');
+  bar.style.width = ((cur + 1) / n * 100) + '%';
+}
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+});
+
+document.querySelector('.deck').addEventListener('click', e => {
+  if (e.target.closest('.dot')) return;
+  e.clientX > window.innerWidth / 2 ? go(cur + 1) : go(cur - 1);
+});
+
+go(0);
+</script>
+</body>
+</html>
