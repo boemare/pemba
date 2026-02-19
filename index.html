@@ -3,185 +3,302 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PEMBA</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>PEMBA — First Robot on Everest</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-:root {
-  --bg: #07090c;
-  --fg: #edf0f4;
-  --dim: rgba(237,240,244,0.42);
-  --faint: rgba(237,240,244,0.12);
-  --ice: #6ec6e8;
-  --gold: #d4a853;
-  --danger: #e05c5c;
-  --line: rgba(237,240,244,0.07);
-  --pad: 64px;
+:root{
+  --bg:#06080C;
+  --fg:#E4EBF0;
+  --dim:rgba(228,235,240,0.44);
+  --faint:rgba(228,235,240,0.1);
+  --ice:#7DD4F0;
+  --ice-dim:rgba(125,212,240,0.15);
+  --gold:#C9933A;
+  --danger:#D95F5F;
+  --line:rgba(228,235,240,0.07);
+  --line-hi:rgba(125,212,240,0.2);
+  --pad-x:60px;
+  --pad-y:52px;
+  --r:0px;
 }
 
-html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--fg);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+/* ---- BASE ---- */
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-weight:400;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* grain overlay */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1000;opacity:0.6;
+}
+
+/* ---- TYPOGRAPHY ---- */
+.syne{font-family:'Syne',sans-serif}
+.mono{font-family:'Space Mono',monospace}
+
+.kicker{
+  font-family:'Space Mono',monospace;
+  font-size:10px;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--ice);margin-bottom:18px;
+}
+.headline{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(26px,3.8vw,52px);font-weight:800;
+  line-height:1.04;letter-spacing:-0.02em;
+}
+.headline br{display:block}
 
 /* ---- PROGRESS ---- */
-#progress-bar {
-  position: fixed; top: 0; left: 0; height: 2px;
-  background: var(--ice); transition: width 0.45s ease; z-index: 200;
+#bar{
+  position:fixed;top:0;left:0;height:2px;width:0;
+  background:linear-gradient(90deg,var(--ice),rgba(125,212,240,0.4));
+  transition:width 0.5s cubic-bezier(0.4,0,0.2,1);z-index:900;
 }
 
-/* ---- SLIDE ENGINE ---- */
-.deck { width: 100vw; height: 100vh; position: relative; }
-.slide {
-  position: absolute; inset: 0;
-  padding: var(--pad);
-  display: flex; flex-direction: column;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.4s ease;
+/* ---- SLIDE COUNTER ---- */
+#ctr{
+  position:fixed;top:20px;right:var(--pad-x);
+  font-family:'Space Mono',monospace;
+  font-size:10px;letter-spacing:0.16em;
+  color:rgba(228,235,240,0.2);z-index:900;
 }
-.slide.active { opacity: 1; pointer-events: all; }
 
-/* ---- TYPE ---- */
-.kicker {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.22em;
-  text-transform: uppercase; color: var(--ice); margin-bottom: 20px;
+/* ---- NAV DOTS ---- */
+#dots{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:6px;z-index:900;
 }
-.headline {
-  font-size: clamp(28px, 3.6vw, 50px); font-weight: 900;
-  line-height: 1.04; letter-spacing: -0.025em;
+.dot{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--faint);cursor:pointer;
+  transition:background 0.3s,transform 0.3s,width 0.3s;
 }
-.sub { font-size: 14px; color: var(--dim); line-height: 1.6; margin-top: 10px; max-width: 560px; }
+.dot.on{background:var(--ice);transform:scale(1.6)}
 
-/* ---- GRID SYSTEMS ---- */
-.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
-.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
-.g22 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px; margin-top: 36px; flex: 1; }
-.gcol { display: flex; flex-direction: column; gap: 1px; }
+/* ---- DECK & SLIDES ---- */
+.deck{width:100vw;height:100vh;overflow:hidden;position:relative}
+.slide{
+  position:absolute;inset:0;
+  padding:var(--pad-y) var(--pad-x);
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.45s ease, transform 0.45s ease;
+  transform:translateY(12px);
+  overflow:hidden;
+}
+.slide.active{opacity:1;pointer-events:all;transform:translateY(0)}
+.slide.out{transform:translateY(-12px)}
+
+/* ---- GRID ---- */
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:32px;flex:1;min-height:0}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:32px;flex:1;min-height:0}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;margin-top:28px;flex:1;min-height:0}
+.g22{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:1px;margin-top:28px;flex:1;min-height:0}
+.gcol{display:flex;flex-direction:column;gap:1px}
 
 /* ---- CELL ---- */
-.cell {
-  border: 1px solid var(--line);
-  padding: 32px 28px;
-  display: flex; flex-direction: column; justify-content: flex-end;
-  position: relative; overflow: hidden;
+.cell{
+  border:1px solid var(--line);
+  padding:28px 24px;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  position:relative;overflow:hidden;
 }
-.cell.hi { background: rgba(110,198,232,0.04); border-color: rgba(110,198,232,0.18); }
-.cell.danger { background: rgba(224,92,92,0.04); border-color: rgba(224,92,92,0.18); }
+.cell.hi{background:rgba(125,212,240,0.03);border-color:var(--line-hi)}
+.cell.danger{background:rgba(217,95,95,0.03);border-color:rgba(217,95,95,0.2)}
+.cell.gold-hi{background:rgba(201,147,58,0.04);border-color:rgba(201,147,58,0.2)}
 
-.c-tag {
-  font-size: 9px; font-weight: 700; letter-spacing: 0.2em;
-  text-transform: uppercase; color: var(--dim); margin-bottom: 12px;
+.c-tag{
+  font-family:'Space Mono',monospace;
+  font-size:9px;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:10px;
 }
-.c-num {
-  font-size: clamp(44px, 6vw, 82px); font-weight: 900;
-  line-height: 0.9; letter-spacing: -0.03em; color: var(--ice);
+.c-num{
+  font-family:'Space Mono',monospace;
+  font-size:clamp(42px,5.5vw,78px);font-weight:700;
+  line-height:0.9;letter-spacing:-0.02em;color:var(--ice);
 }
-.c-num.w { color: var(--fg); }
-.c-num.g { color: var(--gold); }
-.c-num.r { color: var(--danger); }
-.c-num.sm { font-size: clamp(24px, 3vw, 42px); line-height: 1.05; }
-.c-desc {
-  font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.6;
-}
-.c-src {
-  font-size: 9px; color: rgba(237,240,244,0.2); margin-top: 8px; letter-spacing: 0.04em;
-}
+.c-num.w{color:var(--fg)}
+.c-num.g{color:var(--gold)}
+.c-num.r{color:var(--danger)}
+.c-num.sm{font-size:clamp(20px,2.4vw,36px);line-height:1.1;letter-spacing:-0.01em}
+.c-desc{font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.65}
+.c-src{font-size:9px;color:rgba(228,235,240,0.18);margin-top:7px;letter-spacing:0.04em;font-family:'Space Mono',monospace}
 
 /* ---- COVER ---- */
-.cover-body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-.wordmark {
-  font-size: clamp(100px, 20vw, 220px); font-weight: 900;
-  letter-spacing: -0.045em; line-height: 0.85; color: var(--fg);
+.cover-inner{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.wordmark{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(88px,17vw,210px);font-weight:800;
+  letter-spacing:-0.045em;line-height:0.85;
+  background:linear-gradient(160deg,#E4EBF0 40%,rgba(228,235,240,0.55));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
 }
-.cover-tag { font-size: clamp(14px, 1.6vw, 20px); font-weight: 300; color: var(--dim); margin-top: 20px; line-height: 1.45; max-width: 520px; }
-.cover-ft { display: flex; justify-content: space-between; align-items: flex-end; }
-.sponsors { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
-.date-pill {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--ice); border: 1px solid rgba(110,198,232,0.35); padding: 8px 16px;
+.cover-sub{
+  font-size:clamp(13px,1.5vw,19px);font-weight:300;
+  color:var(--dim);margin-top:22px;line-height:1.5;max-width:500px;
+}
+.cover-ft{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px}
+.sponsors{
+  font-family:'Space Mono',monospace;
+  font-size:11px;font-weight:700;letter-spacing:0.2em;
+  text-transform:uppercase;color:var(--dim);
+}
+.date-pill{
+  font-family:'Space Mono',monospace;
+  font-size:9px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--ice);border:1px solid var(--line-hi);padding:8px 16px;
 }
 
 /* ---- TRACTION ---- */
-.tr-cell {
-  border: 1px solid var(--line); padding: 36px 32px;
-  display: flex; flex-direction: column; justify-content: flex-end;
-}
-.tr-cell.hi { background: rgba(110,198,232,0.04); border-color: rgba(110,198,232,0.2); }
-.confirmed { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ice); margin-bottom: 10px; }
-.tr-title { font-size: clamp(18px, 2.2vw, 26px); font-weight: 800; line-height: 1.15; }
-.tr-sub { font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.6; }
+.tr-cell{border:1px solid var(--line);padding:32px 28px;display:flex;flex-direction:column;justify-content:flex-end}
+.tr-cell.hi{background:rgba(125,212,240,0.03);border-color:var(--line-hi)}
+.confirmed{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ice);margin-bottom:10px}
+.tr-title{font-family:'Syne',sans-serif;font-size:clamp(16px,2vw,24px);font-weight:700;line-height:1.15}
+.tr-sub{font-size:11.5px;color:var(--dim);margin-top:10px;line-height:1.65}
 
 /* ---- FIRST MOVER ---- */
-.fm-cell {
-  border: 1px solid var(--line); padding: 36px 32px;
-  display: flex; flex-direction: column; justify-content: flex-end;
+.fm-cell{border:1px solid var(--line);padding:32px 28px;display:flex;flex-direction:column;justify-content:flex-end}
+.fm-cell.hi{background:rgba(125,212,240,0.03);border-color:var(--line-hi)}
+.fm-n{
+  font-family:'Space Mono',monospace;
+  font-size:clamp(60px,8vw,100px);font-weight:700;
+  letter-spacing:-0.03em;line-height:0.85;
+  color:rgba(228,235,240,0.05);margin-bottom:10px;
 }
-.fm-cell.hi { background: rgba(110,198,232,0.04); border-color: rgba(110,198,232,0.2); }
-.fm-n {
-  font-size: clamp(72px, 10vw, 110px); font-weight: 900;
-  letter-spacing: -0.04em; line-height: 0.85;
-  color: rgba(237,240,244,0.06); margin-bottom: 12px;
-}
-.fm-title { font-size: clamp(14px, 1.6vw, 18px); font-weight: 700; line-height: 1.2; }
-.fm-sub { font-size: 11px; color: var(--dim); margin-top: 8px; line-height: 1.6; }
+.fm-title{font-family:'Syne',sans-serif;font-size:clamp(13px,1.5vw,17px);font-weight:700;line-height:1.2}
+.fm-sub{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.65}
 
 /* ---- TEAM ---- */
-.team-cell { border: 1px solid var(--line); padding: 32px 28px; }
-.t-role { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ice); margin-bottom: 10px; }
-.t-name { font-size: clamp(14px, 1.6vw, 18px); font-weight: 800; margin-bottom: 10px; line-height: 1.2; }
-.t-bio { font-size: 12px; color: var(--dim); line-height: 1.6; }
+.team-cell{border:1px solid var(--line);padding:28px 24px}
+.t-role{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ice);margin-bottom:10px}
+.t-name{font-family:'Syne',sans-serif;font-size:clamp(13px,1.5vw,17px);font-weight:700;margin-bottom:10px;line-height:1.2}
+.t-bio{font-size:11.5px;color:var(--dim);line-height:1.65}
+.sub-label{color:var(--ice);font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;font-family:'Space Mono',monospace}
+.sub-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.sub-bio{font-size:10px;color:var(--dim);line-height:1.6;display:block;margin-top:3px}
 
 /* ---- ASK ---- */
-.ask-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.ask-num { font-size: clamp(80px, 16vw, 180px); font-weight: 900; letter-spacing: -0.04em; line-height: 0.85; color: var(--gold); }
-.ask-desc { font-size: clamp(14px, 1.8vw, 20px); font-weight: 300; color: var(--dim); margin-top: 24px; max-width: 520px; line-height: 1.55; }
-.ask-row { display: flex; gap: 48px; margin-top: 48px; border-top: 1px solid var(--line); padding-top: 32px; flex-wrap: wrap; }
-.ask-item { display: flex; flex-direction: column; gap: 5px; }
-.ask-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
-.ask-val { font-size: 13px; font-weight: 600; color: var(--fg); }
-.book-btn {
-  display: inline-block; padding: 12px 28px;
-  background: var(--ice); color: #07090c;
-  font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
-  text-transform: uppercase; text-decoration: none;
-  transition: background 0.2s ease, transform 0.15s ease;
+.ask-inner{flex:1;display:flex;flex-direction:column;justify-content:center}
+.ask-num{
+  font-family:'Space Mono',monospace;
+  font-size:clamp(72px,14vw,170px);font-weight:700;
+  letter-spacing:-0.03em;line-height:0.85;color:var(--gold);
 }
-.book-btn:hover { background: #a8dff0; transform: translateY(-1px); }
+.ask-desc{font-size:clamp(13px,1.6vw,18px);font-weight:300;color:var(--dim);margin-top:24px;max-width:480px;line-height:1.6}
+.ask-row{display:flex;gap:40px;margin-top:44px;border-top:1px solid var(--line);padding-top:28px;flex-wrap:wrap;align-items:center}
+.ask-item{display:flex;flex-direction:column;gap:5px}
+.ask-label{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--dim)}
+.ask-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--fg)}
+.book-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 24px;background:var(--ice);color:#06080C;
+  font-family:'Space Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;
+  transition:background 0.2s,transform 0.15s;flex-shrink:0;
+}
+.book-btn:hover{background:#A8DFF0;transform:translateY(-2px)}
 
-/* ---- NAV ---- */
-.nav-dots { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 100; }
-.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); cursor: pointer; transition: background 0.3s, transform 0.3s; }
-.dot.on { background: var(--ice); transform: scale(1.5); }
-.slide-counter { position: fixed; top: 22px; right: var(--pad); font-size: 10px; font-weight: 700; letter-spacing: 0.16em; color: var(--faint); z-index: 100; }
+/* ======================================
+   MOBILE — SCROLL MODE
+   ====================================== */
+@media(max-width:767px){
+  body{overflow-x:hidden;overflow-y:auto;height:auto}
+  #ctr{display:none}
+  #dots{gap:5px}
+  .dot{width:3px;height:3px}
+
+  .deck{height:auto;overflow:visible}
+  .slide{
+    position:relative;inset:auto;
+    opacity:1;pointer-events:all;
+    transform:none;
+    min-height:100svh;
+    padding:40px 24px 72px;
+    border-bottom:1px solid var(--line);
+  }
+  .slide.active{opacity:1;transform:none}
+
+  .headline{font-size:clamp(26px,7vw,40px)}
+  .wordmark{font-size:clamp(72px,18vw,120px)}
+  .cover-sub{font-size:15px}
+
+  /* grids on mobile */
+  .g3,.g4{grid-template-columns:1fr;gap:1px;margin-top:24px;flex:none}
+  .g2{grid-template-columns:1fr 1fr;margin-top:24px;flex:none}
+  .g22{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;margin-top:24px;flex:none}
+  .gcol{gap:1px}
+
+  .c-num{font-size:clamp(48px,12vw,72px)}
+  .c-num.sm{font-size:clamp(18px,5vw,28px)}
+  .fm-n{font-size:clamp(52px,14vw,80px)}
+  .c-desc,.tr-sub,.fm-sub,.t-bio{font-size:12px}
+
+  /* solution slide: stack on mobile */
+  .slide[data-i="3"] .g2{grid-template-columns:1fr}
+  /* first mover: stack */
+  .slide[data-i="7"] .g22{grid-template-columns:1fr}
+  /* team: stack */
+  .slide[data-i="8"] .g22{grid-template-columns:1fr}
+  /* automation: 2 col */
+  .slide[data-i="6"] .g4{grid-template-columns:1fr 1fr}
+
+  .ask-num{font-size:clamp(64px,16vw,100px)}
+  .ask-desc{font-size:15px}
+  .ask-row{gap:24px;margin-top:28px;padding-top:20px}
+  .book-btn{font-size:9px;padding:11px 20px}
+
+  .cell,.tr-cell,.fm-cell,.team-cell{padding:20px 16px}
+  .cover-ft{gap:12px}
+  .date-pill{font-size:8px;padding:7px 12px}
+  #bar{display:none}
+}
+
+@media(min-width:768px) and (max-width:1023px){
+  :root{--pad-x:40px;--pad-y:40px}
+  .headline{font-size:clamp(26px,3.2vw,42px)}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .g4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+  .slide[data-i="3"] .g2{grid-template-columns:1fr}
+  .c-num{font-size:clamp(38px,5vw,64px)}
+  .wordmark{font-size:clamp(80px,14vw,150px)}
+}
 </style>
 </head>
 <body>
-
-<div id="progress-bar"></div>
-<div class="slide-counter" id="counter">01 / 10</div>
-<div class="nav-dots" id="dots"></div>
+<div id="bar"></div>
+<div id="ctr">01 / 10</div>
+<div id="dots"></div>
 
 <div class="deck">
 
-<!-- ======== 01: COVER ======== -->
+<!-- 01 COVER -->
 <div class="slide active" data-i="0">
-  <div class="cover-body">
+  <div class="cover-inner">
     <div>
       <div class="kicker">A Documentary by Geologic Dome</div>
       <div class="wordmark">PEMBA.</div>
-      <div class="cover-tag">The first humanoid robot on Everest. A once-in-a-generation story about a dying mountain, an invisible people, and the machine that tells it right.</div>
+      <div class="cover-sub">The first humanoid robot on Everest. A once-in-a-generation story about a dying mountain, an invisible people, and the machine that tells it right.</div>
     </div>
     <div class="cover-ft">
       <div>
         <div class="sponsors">Unitree &nbsp;+&nbsp; Netflix</div>
-        <div style="margin-top:6px;font-size:10px;color:rgba(237,240,244,0.2);letter-spacing:0.08em;">geologicdome.com</div>
+        <div style="margin-top:6px;font-family:'Space Mono',monospace;font-size:9px;color:rgba(228,235,240,0.18);letter-spacing:0.08em;">geologicdome.com</div>
       </div>
       <div class="date-pill">April 12 to June 1, 2026</div>
     </div>
   </div>
 </div>
 
-<!-- ======== 02: THE PROBLEM ======== -->
+<!-- 02 THE PROBLEM -->
 <div class="slide" data-i="1">
   <div class="kicker">The Problem</div>
   <div class="headline">Everest is dying.<br>The world is not listening.</div>
@@ -189,25 +306,25 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     <div class="cell">
       <div class="c-tag">Waste</div>
       <div class="c-num">95t</div>
-      <div class="c-desc">Waste collected from Everest in the 2024 season alone. 40 to 50 tons still sitting at South Col and high camps. Microplastics detected at 8,440m, the highest concentration ever recorded on Earth.</div>
+      <div class="c-desc">Waste collected from Everest in 2024 alone. 40 to 50 tons still at South Col and high camps. Microplastics at 8,440m — highest ever recorded on Earth.</div>
       <div class="c-src">SPCC / NPR / ScienceDirect 2024</div>
     </div>
     <div class="cell">
       <div class="c-tag">Ice</div>
       <div class="c-num">2,000</div>
-      <div class="c-desc">Years of ice lost on South Col Glacier in 25 years. Khumbu Glacier retreating 30m per year. Thinning rate has doubled since 2009. At current pace, gone by mid-century.</div>
+      <div class="c-desc">Years of ice lost on South Col Glacier in 25 years. Khumbu retreating 30m/year. Thinning rate has doubled since 2009. Gone by mid-century at current pace.</div>
       <div class="c-src">Nature / National Geographic 2022 to 2025</div>
     </div>
     <div class="cell danger">
       <div class="c-tag">People</div>
       <div class="c-num r">4,035</div>
-      <div class="c-desc">Sherpa fatalities per 100,000 workers. Miners: 25. Commercial fishermen: 124. Sherpas cross the Khumbu Icefall 15 to 20 times per season. Western climbers cross it 4 to 5 times.</div>
+      <div class="c-desc">Sherpa fatalities per 100,000 workers. Miners: 25. Fishermen: 124. Sherpas cross the Khumbu Icefall 15 to 20 times per season. Western climbers: 4 to 5.</div>
       <div class="c-src">Outside Online / NPR / Alan Arnette 2025</div>
     </div>
   </div>
 </div>
 
-<!-- ======== 03: THE SHERPA GAP ======== -->
+<!-- 03 SHERPA GAP -->
 <div class="slide" data-i="2">
   <div class="kicker">The Human Cost</div>
   <div class="headline">Sherpas take 4x the risk.<br>Earn one-tenth the pay.</div>
@@ -215,60 +332,60 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     <div class="cell">
       <div class="c-tag">Pay Gap</div>
       <div class="c-num r">10x</div>
-      <div class="c-desc">Western guides earn $50,000 or more per season. Sherpas earn $4,000 to $5,000. For the same mountain. For more crossings through the most dangerous terrain on Earth.</div>
+      <div class="c-desc">Western guides earn $50,000+ per season. Sherpas earn $4,000 to $5,000. Same mountain. More crossings. The most dangerous terrain on Earth.</div>
       <div class="c-src">Alan Arnette / Borgen Project 2024 to 2025</div>
     </div>
     <div class="cell">
       <div class="c-tag">Population</div>
       <div class="c-num w">250K</div>
-      <div class="c-desc">Sherpas in Nepal per 2023 census. 150,000 globally. Their story has driven a global industry worth tens of millions per year. They have never told it themselves. Until now.</div>
+      <div class="c-desc">Sherpas in Nepal per 2023 census. 150,000 globally. Their story has driven a global industry. They have never told it themselves. Until now.</div>
       <div class="c-src">Nepal Census 2023 / Joshua Project</div>
     </div>
     <div class="cell hi">
       <div class="c-tag">Media Precedent</div>
-      <div class="c-num w sm">Mountain Queen</div>
-      <div class="c-desc">Lhakpa Sherpa documentary. Netflix. July 2024. Sherpa-led. Proof the audience exists and is hungry for this story. PEMBA tells it at 8,000 meters, through a machine that speaks every language.</div>
+      <div class="c-num sm w">Mountain Queen</div>
+      <div class="c-desc">Lhakpa Sherpa documentary. Netflix. July 2024. Sherpa-led. Proof the audience exists. PEMBA tells it at 8,000m through a machine that speaks every language.</div>
       <div class="c-src">Netflix / Deadline July 2024</div>
     </div>
   </div>
 </div>
 
-<!-- ======== 04: SOLUTION ======== -->
+<!-- 04 SOLUTION -->
 <div class="slide" data-i="3">
   <div class="kicker">Our Solution</div>
   <div class="headline">We put a humanoid on the summit.<br>Once in a lifetime.</div>
-  <div class="g2" style="margin-top:32px;">
+  <div class="g2" style="margin-top:28px;">
     <div class="gcol">
-      <div class="cell hi" style="flex:1;">
-        <div class="c-tag">The Robot: Unitree G1 EDU</div>
+      <div class="cell hi" style="flex:1">
+        <div class="c-tag">The Robot — Unitree G1 EDU</div>
         <div class="c-num sm w">-47.4°C</div>
-        <div class="c-desc">Tested February 2026 in Xinjiang, China. 130,000 steps across Arctic ice and snow. Beidou satellite nav with centimeter precision. NVIDIA Jetson Orin (100 TOPS AI). 360° LiDAR. 4-mic array. 35kg. $43,500.</div>
+        <div class="c-desc">Tested February 2026, Xinjiang. 130,000 steps across Arctic ice. Beidou satellite nav. NVIDIA Jetson Orin (100 TOPS AI). 360° LiDAR. 4-mic array. 35kg. $43,500.</div>
         <div class="c-src">Interesting Engineering / CNEVPost Feb 2026</div>
       </div>
-      <div class="cell" style="flex:1;">
+      <div class="cell" style="flex:1">
         <div class="c-tag">Unitree Robotics</div>
         <div class="c-num">$1.7B</div>
-        <div class="c-desc">Valuation June 2025. $137M revenue in 2024. Projecting 10,000 to 20,000 G1 units shipped in 2026. Backed by Tencent, Alibaba, Ant Group, Geely Capital.</div>
+        <div class="c-desc">Valuation June 2025. $137M revenue 2024. Projecting 10,000 to 20,000 G1 units in 2026. Backed by Tencent, Alibaba, Ant Group, Geely Capital.</div>
         <div class="c-src">The Robot Report / CNTechPost 2025</div>
       </div>
     </div>
     <div class="gcol">
-      <div class="cell" style="flex:1;">
+      <div class="cell" style="flex:1">
         <div class="c-tag">The Story</div>
         <div class="c-num sm w">Any language.<br>Any altitude.</div>
-        <div class="c-desc">The robot speaks directly to Sherpa communities without a Western intermediary. Gets closer than any crew camera. Sherpas speak to 325 million people in their own words. No translation loss.</div>
+        <div class="c-desc">Speaks directly to Sherpa communities. No Western intermediary. Gets closer than any crew camera. Sherpas talk to 325 million people in their own words.</div>
       </div>
-      <div class="cell" style="flex:1;">
+      <div class="cell" style="flex:1">
         <div class="c-tag">The Impact</div>
         <div class="c-num sm w">88%</div>
-        <div class="c-desc">Of Blue Planet II viewers changed real-world behavior. 100% increase in searches for ocean plastic dangers post-broadcast. 55% increase in recycling searches. A robot on the summit is more viral than any narrator.</div>
+        <div class="c-desc">Of Blue Planet II viewers changed real behavior. 100% increase in searches for ocean plastic dangers. 55% increase in recycling searches. A robot on the summit is more viral than any narrator.</div>
         <div class="c-src">Ipsos UK / Rapid Transition Alliance</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ======== 05: TRACTION ======== -->
+<!-- 05 TRACTION -->
 <div class="slide" data-i="4">
   <div class="kicker">Traction</div>
   <div class="headline">Confirmed.</div>
@@ -276,27 +393,27 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     <div class="tr-cell">
       <div class="confirmed">Confirmed / Distribution</div>
       <div class="tr-title">Netflix</div>
-      <div class="tr-sub">325M subscribers. $45.2B revenue in 2025. $18B content spend. Growing to $20B in 2026. Documentary TV: 5.12 billion viewing hours on Netflix in 2024 alone.</div>
+      <div class="tr-sub">325M subscribers. $45.2B revenue 2025. $18B content spend growing to $20B in 2026. Documentary TV: 5.12 billion viewing hours on Netflix in 2024.</div>
     </div>
     <div class="tr-cell">
       <div class="confirmed">Confirmed / Partnership</div>
       <div class="tr-title">14 Peaks Expedition</div>
-      <div class="tr-sub">Tashi Lakpa Sherpa leads logistics and community relations. Nima Sherpa is on the expedition team: youngest mountaineer to summit all 14 peaks above 8,000m.</div>
+      <div class="tr-sub">Tashi Lakpa Sherpa leads logistics and community relations. Nima Sherpa on team: youngest mountaineer to summit all 14 peaks above 8,000m.</div>
     </div>
     <div class="tr-cell">
       <div class="confirmed">Confirmed / Hardware</div>
       <div class="tr-title">Unitree G1 EDU Acquired and Tested</div>
-      <div class="tr-sub">Cold-weather performance validated. Autonomous trucks already operate at 5,600m altitude in China. Caterpillar has 690 units deployed globally. This technology works at altitude.</div>
+      <div class="tr-sub">Cold-weather performance validated. Autonomous trucks already run at altitude in China. Caterpillar has 690 units deployed globally. This technology works at altitude.</div>
     </div>
     <div class="tr-cell hi">
       <div class="confirmed">Confirmed / Expedition Window</div>
       <div class="tr-title">April 12 to June 1, 2026</div>
-      <div class="tr-sub">Spring climbing season. Permit secured. Nepal raised Everest permit fee 36% to $15,000 in September 2025, signaling government commitment to regulated, high-value access.</div>
+      <div class="tr-sub">Spring climbing season. Permit secured. Nepal raised permit fee 36% to $15,000 in September 2025 — government commitment to regulated, high-value access.</div>
     </div>
   </div>
 </div>
 
-<!-- ======== 06: MARKET ======== -->
+<!-- 06 MARKET -->
 <div class="slide" data-i="5">
   <div class="kicker">Market</div>
   <div class="headline">325M subscribers.<br>A story they have never seen.</div>
@@ -304,57 +421,57 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     <div class="cell">
       <div class="c-tag">Distribution Reach</div>
       <div class="c-num">325M</div>
-      <div class="c-desc">Netflix paid subscribers end of 2025. $45.2B in annual revenue. Combined top 4 streaming platforms: 622M+ subscribers globally. Documentary TV generated 5.12 billion viewing hours on Netflix in 2024.</div>
+      <div class="c-desc">Netflix paid subscribers end of 2025. $45.2B annual revenue. Combined top 4 platforms: 622M+ subscribers. Documentary TV: 5.12B hours watched on Netflix in 2024.</div>
       <div class="c-src">Netflix Q4 2025 Earnings / Variety Jan 2026</div>
     </div>
     <div class="cell">
-      <div class="c-tag">Comparable: Nature, 2024</div>
+      <div class="c-tag">Comparable — Nature, 2024</div>
       <div class="c-num sm w">Our Living World</div>
-      <div class="c-desc">Netflix. April 2024. Narrated by Cate Blanchett. Number one title globally on Netflix the week of release. 21.4 million views in the opening week. Beat every scripted title on the platform that week.</div>
+      <div class="c-desc">Netflix. April 2024. Cate Blanchett. Number one globally the week of release. 21.4M views opening week. Beat every scripted title on the platform.</div>
       <div class="c-src">Netflix Global Top 10 / April 2024</div>
     </div>
     <div class="cell hi">
-      <div class="c-tag">Comparable: Extreme Altitude, 2021</div>
+      <div class="c-tag">Comparable — Extreme Altitude, 2021</div>
       <div class="c-num sm w">14 Peaks: Nothing is Impossible</div>
-      <div class="c-desc">Nirmal Purja climbs all 14 eight-thousanders in 6 months. Book became a Sunday Times Top 10 bestseller. Secured Rolex, Garmin, and Bremont partnerships. Speaking circuit at $20,000 per event. PEMBA has the same altitude, a better story, and a robot.</div>
+      <div class="c-desc">Nirmal Purja. All 14 eight-thousanders in 6 months. Sunday Times Top 10 book. Rolex, Garmin, Bremont partnerships. $20K speaking events. PEMBA has the same altitude, a better story, and a robot.</div>
       <div class="c-src">Nimsdai.com / Amazon / CelebClive 2025</div>
     </div>
   </div>
 </div>
 
-<!-- ======== 07: AUTOMATION UPSIDE ======== -->
+<!-- 07 AUTOMATION -->
 <div class="slide" data-i="6">
   <div class="kicker">The Bigger Picture</div>
-  <div class="headline">This is also a proof of concept<br>for a $38 billion industry.</div>
+  <div class="headline">This is a proof of concept<br>for a $38 billion industry.</div>
   <div class="g4">
     <div class="cell">
       <div class="c-tag">Labor Pool</div>
       <div class="c-num">29M+</div>
-      <div class="c-desc">Workers in extreme environments globally. 21.4M in mining (ILO). 8.27M in oil and gas (IEA 2024). Fully-loaded cost: $100K to $150K per worker per year.</div>
-      <div class="c-src">ILO 2021 / IEA World Energy Employment 2024</div>
+      <div class="c-desc">Workers in extreme environments. 21.4M in mining (ILO). 8.27M in oil and gas (IEA 2024). Fully-loaded cost: $100K to $150K per worker per year.</div>
+      <div class="c-src">ILO 2021 / IEA 2024</div>
     </div>
     <div class="cell">
       <div class="c-tag">Already Proven</div>
-      <div class="c-num w" style="font-size:clamp(36px,4.5vw,62px);">5,600m</div>
-      <div class="c-desc">Altitude where autonomous trucks already operate in Xinjiang, China. Yimin Mine runs 100 electric autonomous trucks at -40°C. Caterpillar has 690 units deployed, targeting 2,000+ by 2030. Everest base camp is 5,364m.</div>
+      <div class="c-num sm w" style="font-size:clamp(32px,3.8vw,56px);">5,600m</div>
+      <div class="c-desc">Altitude where autonomous trucks already run in Xinjiang. Yimin Mine: 100 electric trucks at -40°C. Caterpillar: 690 deployed, 2,000+ by 2030. Everest base camp: 5,364m.</div>
       <div class="c-src">China Daily / Huawei / Int'l Mining 2025</div>
     </div>
     <div class="cell">
-      <div class="c-tag">Annual Savings Potential</div>
+      <div class="c-tag">Annual Savings</div>
       <div class="c-num g">$290B</div>
-      <div class="c-desc">Annual savings from AI in mining alone by 2035, per McKinsey. Autonomous trucks cut labor costs up to 50%. Mining companies report 30% productivity gains from autonomous equipment.</div>
+      <div class="c-desc">Annual savings from AI in mining by 2035 per McKinsey. Autonomous trucks cut labor costs up to 50%. 30% productivity gains industry-wide.</div>
       <div class="c-src">McKinsey / Caterpillar 2025</div>
     </div>
     <div class="cell hi">
       <div class="c-tag">Robot Market</div>
       <div class="c-num">$38B</div>
-      <div class="c-desc">Humanoid robot market by 2035 per Goldman Sachs. Morgan Stanley projects $5 trillion by 2050. PEMBA is the first real-world field test at the world's most extreme publicly accessible altitude.</div>
-      <div class="c-src">Goldman Sachs 2024 / Morgan Stanley 2024</div>
+      <div class="c-desc">Humanoid robot market by 2035 per Goldman Sachs. Morgan Stanley: $5T by 2050. PEMBA is the first real field test at the world's most extreme publicly accessible altitude.</div>
+      <div class="c-src">Goldman Sachs / Morgan Stanley 2024</div>
     </div>
   </div>
 </div>
 
-<!-- ======== 08: FIRST MOVER ======== -->
+<!-- 08 FIRST MOVER -->
 <div class="slide" data-i="7">
   <div class="kicker">First Mover Advantage</div>
   <div class="headline">The team that does it first<br>owns the narrative forever.</div>
@@ -371,7 +488,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     </div>
     <div class="fm-cell">
       <div class="fm-n">03</div>
-      <div class="fm-title">First locomotion and sensor dataset from extreme high-altitude terrain</div>
+      <div class="fm-title">First locomotion and sensor dataset from extreme terrain</div>
       <div class="fm-sub">Biometric, environmental, and mobility data from 8,000m+ is scientifically unprecedented. Every robotics lab, mining company, and defense contractor needs this data.</div>
     </div>
     <div class="fm-cell hi">
@@ -382,29 +499,29 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   </div>
 </div>
 
-<!-- ======== 09: TEAM ======== -->
+<!-- 09 TEAM -->
 <div class="slide" data-i="8">
   <div class="kicker">The Team</div>
   <div class="headline">Built for this exact mission.</div>
-  <div class="g22" style="margin-top:32px;">
+  <div class="g22" style="margin-top:28px;">
     <div class="team-cell">
       <div class="t-role">Project Leads</div>
       <div class="t-name">Pablo Berlanga + Titania Freire</div>
       <div class="t-bio">Ex-WWF, Microsoft, and UN. Strategy, global partnerships, and narrative direction.<br><br>
-        <span style="color:var(--ice);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Chief Conservation Scientist</span><br>
-        <strong style="font-size:13px;">Samson Grunwald</strong><br>
-        <span style="font-size:10px;color:var(--dim);line-height:1.55;display:block;margin-top:4px;">MSc UCSB Bren School. BA Geography &amp; Environmental Studies, UCLA. Field research in Mexico, Ecuador, and Peru. WWF ecotourism project lead. GIS specialist, fluent in Spanish.</span>
+        <span class="sub-label">Chief Conservation Scientist</span><br>
+        <span class="sub-name">Samson Grunwald</span><br>
+        <span class="sub-bio">MSc UCSB Bren School. BA Geography &amp; Environmental Studies, UCLA. Field research in Mexico, Ecuador, Peru. WWF ecotourism project lead. GIS specialist, fluent in Spanish.</span>
       </div>
     </div>
     <div class="team-cell">
       <div class="t-role">Robotics Leads</div>
       <div class="t-name">Elsa Walston + Oljen Gurelli</div>
       <div class="t-bio">
-        <strong style="font-size:13px;">Elsa Walston</strong> &nbsp;776 Fellow. Dyson Lab. Langland Intelligence + WCS. Multiple government climate tech contracts.<br><br>
-        <strong style="font-size:13px;">Oljen Gurelli</strong> &nbsp;Google DeepMind Scholar. MEng Robotics &amp; AI, UCL. Former Google DeepMind + ESA. IEEE SMC 2025.<br><br>
-        <span style="color:var(--ice);font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;">Robotic Operating Leads, Reflex Founders</span><br>
-        <strong style="font-size:13px;">Arnaud Denis-Remillard + Lukas Miranda</strong><br>
-        <span style="font-size:10px;color:var(--dim);line-height:1.55;display:block;margin-top:4px;">Founders of Reflex (tryreflex.ai). Autonomous systems and software architecture.</span>
+        <strong style="font-size:12px;font-family:'Syne',sans-serif;">Elsa Walston</strong> &nbsp;776 Fellow. Dyson Lab. Langland Intelligence + WCS. Multiple government climate tech contracts.<br><br>
+        <strong style="font-size:12px;font-family:'Syne',sans-serif;">Oljen Gurelli</strong> &nbsp;Google DeepMind Scholar. MEng Robotics &amp; AI, UCL. Former Google DeepMind + ESA. IEEE SMC 2025.<br><br>
+        <span class="sub-label">Robotic Operating Leads, Reflex Founders</span><br>
+        <span class="sub-name">Arnaud Denis-Remillard + Lukas Miranda</span><br>
+        <span class="sub-bio">Founders of Reflex (tryreflex.ai). Autonomous systems and software architecture.</span>
       </div>
     </div>
     <div class="team-cell">
@@ -420,12 +537,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
   </div>
 </div>
 
-<!-- ======== 10: THE ASK ======== -->
+<!-- 10 THE ASK -->
 <div class="slide" data-i="9">
   <div class="kicker">The Ask</div>
-  <div class="ask-body">
+  <div class="ask-inner">
     <div class="ask-num">$200K</div>
-    <div class="ask-desc">Opening space for title, ad, and robot clothing sponsorships. Be part of the first chapter of a story that will be told for decades. First mover pricing. First mover placement. First mover legacy.</div>
+    <div class="ask-desc">Title, ad, and robot clothing sponsorships. Be part of the first chapter of a story that will be told for decades. First mover pricing. First mover legacy.</div>
     <div class="ask-row">
       <div class="ask-item">
         <a href="https://calendly.com/p-geologicdome/30min" target="_blank" class="book-btn">Book a Call</a>
@@ -450,38 +567,105 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 
 <script>
 const slides = Array.from(document.querySelectorAll('.slide'));
-const dots  = document.getElementById('dots');
-const counter = document.getElementById('counter');
-const bar = document.getElementById('progress-bar');
-const n = slides.length;
+const dotsEl = document.getElementById('dots');
+const ctrEl  = document.getElementById('ctr');
+const barEl  = document.getElementById('bar');
+const N = slides.length;
 let cur = 0;
+let isAnimating = false;
 
+const mobile = () => window.innerWidth < 768;
+
+/* build dots */
 slides.forEach((_, i) => {
   const d = document.createElement('div');
   d.className = 'dot' + (i === 0 ? ' on' : '');
   d.addEventListener('click', () => go(i));
-  dots.appendChild(d);
+  dotsEl.appendChild(d);
 });
 
 function go(to) {
-  to = Math.max(0, Math.min(to, n - 1));
+  to = Math.max(0, Math.min(to, N - 1));
+
+  if (mobile()) {
+    /* scroll to section */
+    slides[to].scrollIntoView({ behavior: 'smooth' });
+    setCur(to);
+    return;
+  }
+
+  if (to === cur || isAnimating) return;
+  isAnimating = true;
+
+  slides[cur].classList.add('out');
   slides[cur].classList.remove('active');
-  dots.children[cur].classList.remove('on');
+  dotsEl.children[cur].classList.remove('on');
+
   cur = to;
-  slides[cur].classList.add('active');
-  dots.children[cur].classList.add('on');
-  counter.textContent = String(cur + 1).padStart(2,'0') + ' / ' + String(n).padStart(2,'0');
-  bar.style.width = ((cur + 1) / n * 100) + '%';
+  setCur(cur);
+
+  requestAnimationFrame(() => {
+    slides[cur].classList.add('active');
+    slides[cur].classList.remove('out');
+    dotsEl.children[cur].classList.add('on');
+    setTimeout(() => { isAnimating = false }, 500);
+  });
 }
 
+function setCur(i) {
+  cur = i;
+  ctrEl.textContent = String(i + 1).padStart(2,'0') + ' / ' + String(N).padStart(2,'0');
+  barEl.style.width = ((i + 1) / N * 100) + '%';
+  /* sync dots */
+  Array.from(dotsEl.children).forEach((d, j) => d.classList.toggle('on', j === i));
+}
+
+/* keyboard */
 document.addEventListener('keydown', e => {
-  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
-  if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)){ e.preventDefault(); go(cur + 1); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key)){ e.preventDefault(); go(cur - 1); }
 });
 
+/* click to advance (desktop) */
 document.querySelector('.deck').addEventListener('click', e => {
-  if (e.target.closest('.dot')) return;
+  if (mobile()) return;
+  if (e.target.closest('.dot') || e.target.closest('a')) return;
   e.clientX > window.innerWidth / 2 ? go(cur + 1) : go(cur - 1);
+});
+
+/* touch swipe (desktop slide mode) */
+let tx = 0, ty = 0;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if (mobile()) return; /* let scroll handle mobile */
+  const dx = e.changedTouches[0].clientX - tx;
+  const dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 44) {
+    dx < 0 ? go(cur + 1) : go(cur - 1);
+  }
+}, {passive:true});
+
+/* mobile: track scroll position to update dots/counter */
+if (mobile()) {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting && en.intersectionRatio >= 0.5) {
+        const i = slides.indexOf(en.target);
+        if (i !== -1) setCur(i);
+      }
+    });
+  }, { threshold: 0.5 });
+  slides.forEach(s => obs.observe(s));
+}
+
+window.addEventListener('resize', () => {
+  /* reset to desktop mode if resized */
+  if (!mobile()) {
+    slides.forEach((s,i) => {
+      s.classList.toggle('active', i === cur);
+      s.classList.remove('out');
+    });
+  }
 });
 
 go(0);
