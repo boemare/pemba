@@ -139,6 +139,14 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 .ask-item { display: flex; flex-direction: column; gap: 5px; }
 .ask-label { font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
 .ask-val { font-size: 13px; font-weight: 600; color: var(--fg); }
+.book-btn {
+  display: inline-block; padding: 12px 28px;
+  background: var(--ice); color: #07090c;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
+  text-transform: uppercase; text-decoration: none;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+.book-btn:hover { background: #a8dff0; transform: translateY(-1px); }
 
 /* ---- NAV ---- */
 .nav-dots { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 100; }
@@ -410,7 +418,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
     <div class="ask-desc">Opening space for title, ad, and robot clothing sponsorships. Be part of the first chapter of a story that will be told for decades. First mover pricing. First mover placement. First mover legacy.</div>
     <div class="ask-row">
       <div class="ask-item">
-        <div class="ask-label">Book a Call</div>
+        <a href="https://calendly.com/p-geologicdome/30min" target="_blank" class="book-btn">Book a Call</a>
+      </div>
+      <div class="ask-item">
+        <div class="ask-label">Email</div>
         <div class="ask-val">p@geologicdome.com</div>
       </div>
       <div class="ask-item">
